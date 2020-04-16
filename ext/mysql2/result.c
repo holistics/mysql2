@@ -19,6 +19,8 @@ static rb_encoding *binaryEncoding;
 
 #define MYSQL2_MAX_BYTES_PER_CHAR 3
 
+#define MYSQL2_MAX_FLOATING_SCALE 30
+
 /* From Mysql documentations:
  *   To distinguish between binary and nonbinary data for string data types,
  *   check whether the charsetnr value is 63. If so, the character set is binary,
@@ -224,10 +226,18 @@ static VALUE rb_mysql_result_fetch_field_type(VALUE self, unsigned int idx) {
         rb_field_type = rb_sprintf("bigint(%ld)", field->length);
         break;
       case MYSQL_TYPE_FLOAT:        // float
-        rb_field_type = rb_sprintf("float(%ld,%d)", field->length, field->decimals);
+        if (field->decimals > MYSQL2_MAX_FLOATING_SCALE) {
+          rb_field_type = rb_sprintf("float");
+        } else {
+          rb_field_type = rb_sprintf("float(%ld,%d)", field->length, field->decimals);
+        }
         break;
       case MYSQL_TYPE_DOUBLE:       // double
-        rb_field_type = rb_sprintf("double(%ld,%d)", field->length, field->decimals);
+        if (field->decimals > MYSQL2_MAX_FLOATING_SCALE) {
+          rb_field_type = rb_sprintf("double");
+        } else {
+          rb_field_type = rb_sprintf("double(%ld,%d)", field->length, field->decimals);
+        }
         break;
       case MYSQL_TYPE_TIME:         // MYSQL_TIME
         rb_field_type = rb_str_new_cstr("time");
