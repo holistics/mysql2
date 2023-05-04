@@ -328,17 +328,19 @@ static VALUE rb_mysql_result_fetch_field_type(VALUE self, unsigned int idx) {
         }
         break;
       case MYSQL_TYPE_VAR_STRING:   // char[]
+      case MYSQL_TYPE_VARCHAR: // char[]
         if (field->charsetnr == MYSQL2_BINARY_CHARSET) {
           rb_field_type = rb_sprintf("varbinary(%ld)", field->length);
         } else {
           rb_field_type = rb_sprintf("varchar(%ld)", field->length / MYSQL2_MAX_BYTES_PER_CHAR);
         }
         break;
-      case MYSQL_TYPE_VARCHAR:      // char[]
-        rb_field_type = rb_sprintf("varchar(%ld)", field->length / MYSQL2_MAX_BYTES_PER_CHAR);
-        break;
       case MYSQL_TYPE_TINY_BLOB:    // char[]
-        rb_field_type = rb_str_new_cstr("tinyblob");
+        if (field->charsetnr == MYSQL2_BINARY_CHARSET) {
+          rb_field_type = rb_str_new_cstr("tinyblob");
+        } else {
+          rb_field_type = rb_str_new_cstr("tinytext");
+        }
         break;
       case MYSQL_TYPE_BLOB:         // char[]
         if (field->charsetnr == MYSQL2_BINARY_CHARSET) {
@@ -372,10 +374,18 @@ static VALUE rb_mysql_result_fetch_field_type(VALUE self, unsigned int idx) {
         }
         break;
       case MYSQL_TYPE_MEDIUM_BLOB:  // char[]
-        rb_field_type = rb_str_new_cstr("mediumblob");
+        if (field->charsetnr == MYSQL2_BINARY_CHARSET) {
+          rb_field_type = rb_str_new_cstr("mediumblob");
+        } else {
+          rb_field_type = rb_str_new_cstr("mediumtext");
+        }
         break;
       case MYSQL_TYPE_LONG_BLOB:    // char[]
-        rb_field_type = rb_str_new_cstr("longblob");
+        if (field->charsetnr == MYSQL2_BINARY_CHARSET) {
+          rb_field_type = rb_str_new_cstr("longblob");
+        } else {
+          rb_field_type = rb_str_new_cstr("longtext");
+        }
         break;
       case MYSQL_TYPE_BIT:          // char[]
         rb_field_type = rb_sprintf("bit(%ld)", field->length);
